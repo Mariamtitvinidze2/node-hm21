@@ -1,19 +1,26 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './interface/user.interface'; 
+import { User } from './interface/user.interface';
 
 @Injectable()
 export class UserService {
-  private users: User[] = []; 
+  private users: User[] = [];
 
-  getAllUsers(): User[] {
-    return this.users;
+getAllUsers(filter: { gender?: string; email?: string; page: number; take: number }): User[] {
+    let result = this.users;
+
+    if (filter.gender) {
+      result = result.filter((user) => user.gender === filter.gender);
+    }
+if (typeof filter.email === 'string') {
+  result = result.filter((user) => user.email.startsWith(filter.email!));
+}
+
+
+    const start = (filter.page - 1) * filter.take;
+    const end = start + filter.take;
+    return result.slice(start, end);
   }
 
   getUserById(id: number): User {
@@ -23,20 +30,10 @@ export class UserService {
   }
 
   createUser(createUserDto: CreateUserDto): User {
-    const { firstName, lastName, email, phoneNumber, gender } = createUserDto;
-    if (!email || !firstName || !lastName) {
-      throw new HttpException('Missing required fields', HttpStatus.BAD_REQUEST);
-    }
-
     const newUser: User = {
       id: this.users.length + 1,
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      gender,
+      ...createUserDto,
     };
-
     this.users.push(newUser);
     return newUser;
   }

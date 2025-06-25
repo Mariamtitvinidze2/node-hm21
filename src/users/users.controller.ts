@@ -1,5 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './users.service';
@@ -9,8 +19,13 @@ export class UserController {
   constructor(private readonly usersService: UserService) {}
 
   @Get()
-  getAllUsers() {
-    return this.usersService.getAllUsers();
+  getAllUsers(
+    @Query('gender') gender?: string,
+    @Query('email') email?: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('take', new DefaultValuePipe(30), ParseIntPipe) take = 30,
+  ) {
+    return this.usersService.getAllUsers({ gender, email, page, take });
   }
 
   @Get(':id')
